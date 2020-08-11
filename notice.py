@@ -50,18 +50,22 @@ def parser_page(soup):
 def write_file(notice):
     file_name = notice[0]
     file_name = file_name.replace('#', '')
-    file_name = file_name.replace('/', '、')
+    file_name = file_name.replace('"', '＂')
+    file_name = re.sub(r'[\\\>\<\|\:\*\?\/]', '、', file_name)
     print(file_name)
-    path = './file/sydw/' + file_name + '.md'
+    path = './file/sydw/' + file_name.strip() + '.md'
     with open(path, 'w', encoding='utf-8') as f:
         f.write("\n".join(notice))
 
-def get_url_list(page):
+def get_url_list(page, date):
     li = page.select('ul[class="lh_newBobotm02"] li')
+    # print(li)
     hrefs = []
     for i in li:
         href = i.select('a')[1].get('href')
-        hrefs.append(href)
+        date1 = i.select_one('span').text
+        if date <= date1:
+            hrefs.append(href)
     return hrefs
 
 def get_proxy():
@@ -71,14 +75,16 @@ def delete_proxy(proxy):
     requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
 
 def main():
-    url = 'http://www.offcn.com/sydw/kaoshi/2139/'
-    list_soup = get_one_page(url)
-    urls = get_url_list(list_soup)
-    for i in urls:
-        time.sleep(random.randint(1,3))
-        soup = get_one_page(i)
-        return_list = parser_page(soup)
-        write_file(return_list)
+    date = '2020-08-11'
+    for i in range(0, 1):
+        url = 'http://www.offcn.com/sydw/kaoshi/2139/{html}'.format(html=(str(i)+'.html') if i else '')
+        list_soup = get_one_page(url)
+        urls = get_url_list(list_soup, date)
+        for i in urls:
+            time.sleep(random.randint(1,3))
+            soup = get_one_page(i)
+            return_list = parser_page(soup)
+            write_file(return_list)
 
 if __name__ == "__main__":
     main()
