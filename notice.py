@@ -85,6 +85,7 @@ def main():
             soup = get_one_page(i)
             return_list = parser_page(soup)
             write_file(return_list)
+            
 
 if __name__ == "__main__":
     main()
