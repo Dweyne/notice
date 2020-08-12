@@ -47,18 +47,21 @@ def parser_page(soup):
     notice = [title, time, source, person, register_time, register_type, '\n'.join('%s'%num for num in content)]
     return notice
 
-def write_file(notice):
+def write_file(notice, type):
     file_name = notice[0]
     file_name = file_name.replace('#', '')
     file_name = file_name.replace('"', '＂')
     file_name = re.sub(r'[\\\>\<\|\:\*\?\/]', '、', file_name)
     print(file_name)
-    path = './file/sydw/' + file_name.strip() + '.md'
+    path = './file/'+ type + '/' + file_name.strip() + '.md'
     with open(path, 'w', encoding='utf-8') as f:
         f.write("\n".join(notice))
 
-def get_url_list(page, date):
-    li = page.select('ul[class="lh_newBobotm02"] li')
+def get_url_list(page, date='2020-01-01', type=''):
+    if type=='gwy':
+        li = page.select('div[class="lh_Hotrecommend"] li')
+    else:
+        li = page.select('ul[class="lh_newBobotm02"] li')
     # print(li)
     hrefs = []
     for i in li:
@@ -75,16 +78,28 @@ def delete_proxy(proxy):
     requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
 
 def main():
-    date = '2020-08-11'
+    type = 'gwy' # teacher|sydw|gwy
+    date = '2020-01-01'
+    pre_url = ''
+    if type == 'gwy':
+        # 公务员
+        pre_url = 'http://www.offcn.com/gwy/kaoshi/zhaokao/'
+    elif type == 'sydw':
+        # 事业单位
+        pre_url = 'http://www.offcn.com/sydw/kaoshi/2139/'
+    elif type == 'teacher':
+        # 教师招聘
+        pre_url = 'http://www.offcn.com/jiaoshi/zhaopin/2240/'
     for i in range(0, 1):
-        url = 'http://www.offcn.com/sydw/kaoshi/2139/{html}'.format(html=(str(i)+'.html') if i else '')
+        url ='{pre_url}{html}'.format(pre_url=pre_url,html=(str(i)+'.html') if i else '')
         list_soup = get_one_page(url)
-        urls = get_url_list(list_soup, date)
+        urls = get_url_list(list_soup, date, type)
+        # print(urls)
         for i in urls:
             time.sleep(random.randint(1,3))
             soup = get_one_page(i)
             return_list = parser_page(soup)
-            write_file(return_list)
+            write_file(return_list, type)
             
 
 if __name__ == "__main__":
